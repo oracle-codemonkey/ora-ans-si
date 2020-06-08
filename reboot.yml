@@ -1,0 +1,10 @@
+---
+- name: Reboot 
+  hosts:  dbserver
+  become: true
+
+  tasks:
+  - name: Reboot a Linux machine 
+    reboot:
+      msg: Rebooting web1
+      test_command: ping -c 4 dbserver

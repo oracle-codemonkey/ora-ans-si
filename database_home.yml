@@ -1,0 +1,62 @@
+---
+- name: Create ORACLE HOME 
+  hosts:  dbserver
+  become: true
+
+  tasks:
+
+  - name: change oracle password
+    user:
+      name: oracle
+      password: "{{ 'Oracle123' | password_hash('sha512') }}"
+
+  - name: Put SELinux in permissive mode
+    selinux:
+       policy: targeted
+       state: permissive
+
+  - name: disablefirewalld
+    systemd:
+      name: firewalld
+      enabled: no
+
+  - name: create directory
+    file:
+      path: /u01/app/oracle/product/19.0.0/dbhome_1
+      state: directory
+      owner: oracle
+      group: oinstall
+      mode: '0755'
+
+  - name: create directory
+    file:
+      path: /u02/oradata
+      state: directory
+      owner: oracle
+      group: oinstall
+      mode: '0755'
+
+  - name: create directory
+    file:
+      path: /home/oracle/scripts
+      state: directory
+      owner: oracle
+      group: oinstall
+      mode: '0755'
+
+  # - name: Copy DATABASE ORACLE HOME ZIP to /tmp
+  #   copy: 
+  #     src: ../../dev/o19cDBSI/LINUX.X64_193000_db_home.zip
+  #     dest: /tmp
+  #     owner: oracle
+  #     group: oinstall
+  #     mode: '0755'
+
+  - name: unzip 
+    unarchive:
+        src: LINUX.X64_193000_db_home.zip
+        dest: /u01/app/oracle/product/19.0.0/dbhome_1
+        owner: oracle
+        group: oinstall
+        mode: '0755'
+        

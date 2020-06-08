@@ -1,0 +1,15 @@
+---
+- name: Copy and install RPM 
+  hosts:  dbserver
+  become: true
+
+  tasks:
+  - name: Copy DATABASE PREINSTALL rpm to /tmp
+    copy:
+      src: el7_database_preinstall.rpm
+      dest: /tmp
+
+  - name: Run GRID Preinstall RPM
+    yum:
+      name: /tmp/el7_database_preinstall.rpm
+      state: present
