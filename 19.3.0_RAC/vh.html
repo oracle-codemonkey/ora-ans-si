@@ -1,0 +1,499 @@
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #888888">#</span>
+<span style="color: #888888"># $Header: /home/rcitton/CVS/vagrant_rac-2.0.1/Vagrantfile,v 2.0.1.14 2019/05/18 08:37:32 rcitton Exp $</span>
+<span style="color: #888888">#</span>
+<span style="color: #888888"># LICENSE UPL 1.0</span>
+<span style="color: #888888">#</span>
+<span style="color: #888888"># Copyright (c) 1982-2019 Oracle and/or its affiliates. All rights reserved.</span>
+<span style="color: #888888">#</span>
+<span style="color: #888888">#    NAME</span>
+<span style="color: #888888">#      vagrantfile</span>
+<span style="color: #888888">#</span>
+<span style="color: #888888">#    DESCRIPTION</span>
+<span style="color: #888888">#      Creates two nodes Oracle RAC (Real Application Cluster) Vagrant virtual machines.</span>
+<span style="color: #888888">#</span>
+<span style="color: #888888">#    NOTES</span>
+<span style="color: #888888">#       DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.</span>
+<span style="color: #888888">#</span>
+<span style="color: #888888">#    AUTHOR</span>
+<span style="color: #888888">#       ruggero.citton@oracle.com</span>
+<span style="color: #888888">#</span>
+<span style="color: #888888">#    MODIFIED   (MM/DD/YY)</span>
+<span style="color: #888888">#    rcitton     11/06/18 - Creation</span>
+<span style="color: #888888">#</span>
+<span style="color: #888888">#    REVISION</span>
+<span style="color: #888888">#    20191119 - $Revision: 2.0.1.15 $</span>
+<span style="color: #888888">#</span>
+<span style="color: #888888">#</span>
+ 
+<span style="color: #888888">### -------------------------------------------------------------------</span>
+<span style="color: #888888">### Disclaimer:</span>
+<span style="color: #888888">###</span>
+<span style="color: #888888">### EXCEPT WHERE EXPRESSLY PROVIDED OTHERWISE, THE INFORMATION, SOFTWARE,</span>
+<span style="color: #888888">### PROVIDED ON AN \&quot;AS IS\&quot; AND \&quot;AS AVAILABLE\&quot; BASIS. ORACLE EXPRESSLY DISCLAIMS</span>
+<span style="color: #888888">### ALL WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT</span>
+<span style="color: #888888">### LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR</span>
+<span style="color: #888888">### PURPOSE AND NON-INFRINGEMENT. ORACLE MAKES NO WARRANTY THAT: (A) THE RESULTS</span>
+<span style="color: #888888">### THAT MAY BE OBTAINED FROM THE USE OF THE SOFTWARE WILL BE ACCURATE OR</span>
+<span style="color: #888888">### RELIABLE; OR (B) THE INFORMATION, OR OTHER MATERIAL OBTAINED WILL MEET YOUR</span>
+<span style="color: #888888">### EXPECTATIONS. ANY CONTENT, MATERIALS, INFORMATION OR SOFTWARE DOWNLOADED OR</span>
+<span style="color: #888888">### OTHERWISE OBTAINED IS DONE AT YOUR OWN DISCRETION AND RISK. ORACLE SHALL HAVE</span>
+<span style="color: #888888">### NO RESPONSIBILITY FOR ANY DAMAGE TO YOUR COMPUTER SYSTEM OR LOSS OF DATA THAT</span>
+<span style="color: #888888">### RESULTS FROM THE DOWNLOAD OF ANY CONTENT, MATERIALS, INFORMATION OR SOFTWARE.</span>
+<span style="color: #888888">###</span>
+<span style="color: #888888">### ORACLE RESERVES THE RIGHT TO MAKE CHANGES OR UPDATES TO THE SOFTWARE AT ANY</span>
+<span style="color: #888888">### TIME WITHOUT NOTICE.</span>
+<span style="color: #888888">###</span>
+<span style="color: #888888">### Limitation of Liability:</span>
+<span style="color: #888888">###</span>
+<span style="color: #888888">### IN NO EVENT SHALL ORACLE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,</span>
+<span style="color: #888888">### SPECIAL OR CONSEQUENTIAL DAMAGES, OR DAMAGES FOR LOSS OF PROFITS, REVENUE,</span>
+<span style="color: #888888">### DATA OR USE, INCURRED BY YOU OR ANY THIRD PARTY, WHETHER IN AN ACTION IN</span>
+<span style="color: #888888">### CONTRACT OR TORT, ARISING FROM YOUR ACCESS TO, OR USE OF, THE SOFTWARE.</span>
+<span style="color: #888888">### -------------------------------------------------------------------</span>
+<span style="color: #888888">### This script is NOT supported by Oracle World Wide Technical Support. </span>
+<span style="color: #888888">### The script has been tested and appears to work as intended. </span>
+<span style="color: #888888">### -------------------------------------------------------------------</span>
+
+<span style="color: #888888"># -*- mode: ruby -*-</span>
+<span style="color: #888888"># vi: set ft=ruby :</span>
+require <span style="background-color: #fff0f0">&#39;yaml&#39;</span>
+require <span style="background-color: #fff0f0">&#39;ipaddr&#39;</span>
+
+<span style="color: #888888"># Vagrantfile API/syntax version. Don&#39;t touch unless you know what you&#39;re doing!</span>
+VAGRANTFILE_API_VERSION <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&quot;2&quot;</span>
+
+<span style="color: #888888"># Costant (ol7_latest default disks number + u01)</span>
+<span style="color: #888888"># -----------------------------------------------------------------</span>
+box_disks_num <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">2</span>
+<span style="color: #888888"># -----------------------------------------------------------------</span>
+
+<span style="color: #888888"># Variables</span>
+<span style="color: #888888"># -----------------------------------------------------------------</span>
+params <span style="color: #333333">=</span> YAML<span style="color: #333333">.</span>load_file <span style="background-color: #fff0f0">&#39;config/vagrant.yml&#39;</span>
+var_box             <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;shared&#39;</span>][<span style="background-color: #fff0f0">&#39;box&#39;</span>]
+var_url             <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;shared&#39;</span>][<span style="background-color: #fff0f0">&#39;url&#39;</span>]
+<span style="color: #888888">#</span>
+var_prefix_name     <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;shared&#39;</span>][<span style="background-color: #fff0f0">&#39;prefix_name&#39;</span>]
+var_group           <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&quot;/&quot;</span> <span style="color: #333333">+</span> var_prefix_name
+<span style="color: #888888">#</span>
+var_non_rotational  <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;shared&#39;</span>][<span style="background-color: #fff0f0">&#39;non_rotational&#39;</span>]
+var_dns_public_ip   <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;shared&#39;</span>][<span style="background-color: #fff0f0">&#39;dns_public_ip&#39;</span>]
+var_scan_ip1        <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;shared&#39;</span>][<span style="background-color: #fff0f0">&#39;scan_ip1&#39;</span>]
+var_scan_ip2        <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;shared&#39;</span>][<span style="background-color: #fff0f0">&#39;scan_ip2&#39;</span>]
+var_scan_ip3        <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;shared&#39;</span>][<span style="background-color: #fff0f0">&#39;scan_ip3&#39;</span>]
+<span style="color: #888888">#                   </span>
+var_vm1_name        <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node1&#39;</span>][<span style="background-color: #fff0f0">&#39;vm_name&#39;</span>]
+var_vm1_name <span style="color: #333333">=</span> var_prefix_name <span style="color: #333333">+</span> <span style="background-color: #fff0f0">&quot;-&quot;</span> <span style="color: #333333">+</span> var_vm1_name
+<span style="color: #888888">#</span>
+var_vm1_mem_size    <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node1&#39;</span>][<span style="background-color: #fff0f0">&#39;mem_size&#39;</span>]
+var_vm1_cpus        <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node1&#39;</span>][<span style="background-color: #fff0f0">&#39;cpus&#39;</span>]
+var_vm1_public_ip   <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node1&#39;</span>][<span style="background-color: #fff0f0">&#39;public_ip&#39;</span>]
+var_vm1_vip_ip      <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node1&#39;</span>][<span style="background-color: #fff0f0">&#39;vip_ip&#39;</span>]
+var_vm1_private_ip  <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node1&#39;</span>][<span style="background-color: #fff0f0">&#39;private_ip&#39;</span>]
+var_vm1_u01_disk    <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node1&#39;</span>][<span style="background-color: #fff0f0">&#39;u01_disk&#39;</span>]
+<span style="color: #888888">#                   </span>
+var_vm2_name        <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node2&#39;</span>][<span style="background-color: #fff0f0">&#39;vm_name&#39;</span>]
+var_vm2_name <span style="color: #333333">=</span> var_prefix_name <span style="color: #333333">+</span> <span style="background-color: #fff0f0">&quot;-&quot;</span> <span style="color: #333333">+</span> var_vm2_name
+<span style="color: #888888">#</span>
+var_vm2_mem_size    <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node2&#39;</span>][<span style="background-color: #fff0f0">&#39;mem_size&#39;</span>]
+var_vm2_cpus        <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node2&#39;</span>][<span style="background-color: #fff0f0">&#39;cpus&#39;</span>]
+var_vm2_public_ip   <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node2&#39;</span>][<span style="background-color: #fff0f0">&#39;public_ip&#39;</span>]
+var_vm2_vip_ip      <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node2&#39;</span>][<span style="background-color: #fff0f0">&#39;vip_ip&#39;</span>]
+var_vm2_private_ip  <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node2&#39;</span>][<span style="background-color: #fff0f0">&#39;private_ip&#39;</span>]
+var_vm2_u01_disk    <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;node2&#39;</span>][<span style="background-color: #fff0f0">&#39;u01_disk&#39;</span>]
+<span style="color: #888888">#                   </span>
+var_asm_disk_path   <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;shared&#39;</span>][<span style="background-color: #fff0f0">&#39;asm_disk_path&#39;</span>]
+var_asm_disk_num    <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;shared&#39;</span>][<span style="background-color: #fff0f0">&#39;asm_disk_num&#39;</span>]
+var_asm_disk_size   <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;shared&#39;</span>][<span style="background-color: #fff0f0">&#39;asm_disk_size&#39;</span>]
+<span style="color: #888888">#                   </span>
+var_gi_software     <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;gi_software&#39;</span>]
+var_gi_software_ver <span style="color: #333333">=</span> (var_gi_software<span style="color: #333333">.</span>split(<span style="background-color: #fff0f0">&quot;_&quot;</span>))[<span style="color: #0000DD; font-weight: bold">1</span>]<span style="color: #333333">.</span>to_i
+<span style="color: #888888">#</span>
+var_db_software     <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;db_software&#39;</span>]
+var_db_software_ver <span style="color: #333333">=</span> (var_db_software<span style="color: #333333">.</span>split(<span style="background-color: #fff0f0">&quot;_&quot;</span>))[<span style="color: #0000DD; font-weight: bold">1</span>]<span style="color: #333333">.</span>to_i
+<span style="color: #888888">#</span>
+var_ora_languages   <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;ora_languages&#39;</span>]
+<span style="color: #888888">#</span>
+var_root_password   <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;root_password&#39;</span>]
+var_grid_password   <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;grid_password&#39;</span>]
+var_oracle_password <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;oracle_password&#39;</span>]
+var_sys_password    <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;sys_password&#39;</span>]
+var_pdb_password    <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;pdb_password&#39;</span>]
+<span style="color: #888888">#</span>
+var_p1_ratio        <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;p1_ratio&#39;</span>]
+var_asm_lib_type    <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;asm_lib_type&#39;</span>]
+var_nomgmtdb        <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;nomgmtdb&#39;</span>]
+var_orestart        <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;orestart&#39;</span>]
+<span style="color: #888888">#</span>
+var_db_name         <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;db_name&#39;</span>]
+var_pdb_name        <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;pdb_name&#39;</span>]
+var_db_type         <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;db_type&#39;</span>]
+var_cdb             <span style="color: #333333">=</span> params[<span style="background-color: #fff0f0">&#39;env&#39;</span>][<span style="background-color: #fff0f0">&#39;cdb&#39;</span>]
+<span style="color: #888888"># -----------------------------------------------------------------</span>
+
+<span style="color: #888888"># Variables check</span>
+<span style="color: #888888"># -----------------------------------------------------------------</span>
+<span style="color: #008800; font-weight: bold">if</span> var_vm1_mem_size<span style="color: #333333">.</span>to_i <span style="color: #333333">&lt;</span> <span style="color: #0000DD; font-weight: bold">6144</span>
+  puts <span style="background-color: #fff0f0">&#39;ERROR: vm1_mem_size option can not be less then 6 Gb&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> var_vm2_mem_size<span style="color: #333333">.</span>to_i <span style="color: #333333">&lt;</span> <span style="color: #0000DD; font-weight: bold">6144</span>
+  puts <span style="background-color: #fff0f0">&#39;ERROR: vm2_mem_size option can not be less then 6 Gb&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+
+<span style="color: #008800; font-weight: bold">if</span> ( (var_non_rotational <span style="color: #333333">!=</span> <span style="background-color: #fff0f0">&#39;on&#39;</span>) <span style="color: #000000; font-weight: bold">and</span> (var_non_rotational <span style="color: #333333">!=</span> <span style="background-color: #fff0f0">&#39;off&#39;</span>) )
+  puts <span style="background-color: #fff0f0">&#39;ERROR: non_rotational option can be on or off&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+
+<span style="color: #008800; font-weight: bold">if</span> ( (var_nomgmtdb <span style="color: #333333">!=</span> true) <span style="color: #000000; font-weight: bold">and</span> (var_nomgmtdb <span style="color: #333333">!=</span> false) )
+  puts <span style="background-color: #fff0f0">&#39;ERROR: nomgmtdb option can be true or false&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> ( (var_orestart <span style="color: #333333">!=</span> true) <span style="color: #000000; font-weight: bold">and</span> (var_orestart <span style="color: #333333">!=</span> false) )
+  puts <span style="background-color: #fff0f0">&#39;ERROR: orestart option can be true or false&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> ( (var_cdb <span style="color: #333333">!=</span> true) <span style="color: #000000; font-weight: bold">and</span> (var_cdb <span style="color: #333333">!=</span> false) )
+  puts <span style="background-color: #fff0f0">&#39;ERROR: cdb option can be true or false&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+
+<span style="color: #008800; font-weight: bold">if</span> ( (var_orestart <span style="color: #333333">==</span> true) <span style="color: #000000; font-weight: bold">and</span> (var_db_type <span style="color: #333333">!=</span> <span style="background-color: #fff0f0">&#39;SI&#39;</span>))
+  puts <span style="background-color: #fff0f0">&#39;ERROR: orestart option supports ony Single Instance database&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+
+<span style="color: #008800; font-weight: bold">if</span> ( (var_db_type <span style="color: #333333">!=</span> <span style="background-color: #fff0f0">&#39;RAC&#39;</span>) <span style="color: #000000; font-weight: bold">and</span> (var_db_type <span style="color: #333333">!=</span> <span style="background-color: #fff0f0">&#39;RACONE&#39;</span>) <span style="color: #000000; font-weight: bold">and</span> (var_db_type <span style="color: #333333">!=</span> <span style="background-color: #fff0f0">&#39;SI&#39;</span>))
+  puts <span style="background-color: #fff0f0">&#39;ERROR: db_type option can be RAC, RACONE or SI&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> ( (var_asm_lib_type <span style="color: #333333">!=</span> <span style="background-color: #fff0f0">&#39;ASMLIB&#39;</span>) <span style="color: #000000; font-weight: bold">and</span> (var_asm_lib_type <span style="color: #333333">!=</span> <span style="background-color: #fff0f0">&#39;ASMFD&#39;</span>) )
+  puts <span style="background-color: #fff0f0">&#39;ERROR: asm_lib_type option can be ASMLIB or ASMFD&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> var_p1_ratio<span style="color: #333333">.</span>between<span style="color: #FF0000; background-color: #FFAAAA">?</span>(<span style="color: #0000DD; font-weight: bold">10</span>, <span style="color: #0000DD; font-weight: bold">80</span>)
+  puts <span style="background-color: #fff0f0">&#39;ERROR: p1_ratio option can be an integer between 10 and 80&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+
+<span style="color: #008800; font-weight: bold">if</span> var_asm_disk_path<span style="color: #333333">.</span>to_s<span style="color: #333333">.</span>empty<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+  var_asm_disk_path <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&quot;./&quot;</span>
+<span style="color: #008800; font-weight: bold">else</span>
+  var_asm_disk_path <span style="color: #333333">=</span> var_asm_disk_path <span style="color: #333333">+</span> <span style="background-color: #fff0f0">&quot;/&quot;</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> var_asm_disk_num<span style="color: #333333">.</span>to_i <span style="color: #333333">&lt;</span> <span style="color: #0000DD; font-weight: bold">4</span>
+  puts <span style="background-color: #fff0f0">&#39;ERROR: asm_disk_num option can not be less then 4&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> var_asm_disk_size<span style="color: #333333">.</span>to_i <span style="color: #333333">&lt;</span> <span style="color: #0000DD; font-weight: bold">10</span>
+  puts <span style="background-color: #fff0f0">&#39;ERROR: asm_disk_size option can not be less then 10 Gb&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+
+<span style="color: #008800; font-weight: bold">class</span> <span style="color: #BB0066; font-weight: bold">String</span>
+  <span style="color: #008800; font-weight: bold">def</span> <span style="color: #0066BB; font-weight: bold">is_ip</span><span style="color: #FF0000; background-color: #FFAAAA">?</span>
+    <span style="color: #FF0000; background-color: #FFAAAA">!!</span>IPAddr<span style="color: #333333">.</span>new(<span style="color: #007020">self</span>) rescue false
+  end
+end
+
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> var_vm1_public_ip<span style="color: #333333">.</span>is_ip<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+  puts <span style="background-color: #fff0f0">&#39;ERROR: public_ip for node1 is not a valid IP address&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> var_vm1_private_ip<span style="color: #333333">.</span>is_ip<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+  puts <span style="background-color: #fff0f0">&#39;ERROR: private_ip for node1 is not a valid IP address&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> var_vm1_vip_ip<span style="color: #333333">.</span>is_ip<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+  puts <span style="background-color: #fff0f0">&#39;ERROR: vip_ip for node1 is not a valid IP address&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+
+<span style="color: #008800; font-weight: bold">if</span> (var_orestart <span style="color: #333333">==</span> false)
+  <span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> var_vm2_public_ip<span style="color: #333333">.</span>is_ip<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+    puts <span style="background-color: #fff0f0">&#39;ERROR: public_ip for node2 is not a valid IP address&#39;</span>
+    <span style="color: #007020">exit</span>
+  end
+  <span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> var_vm2_private_ip<span style="color: #333333">.</span>is_ip<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+    puts <span style="background-color: #fff0f0">&#39;ERROR: private_ip for node2 is not a valid IP address&#39;</span>
+    <span style="color: #007020">exit</span>
+  end
+  <span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> var_vm2_vip_ip<span style="color: #333333">.</span>is_ip<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+    puts <span style="background-color: #fff0f0">&#39;ERROR: vip_ip for node1 is not a valid IP address&#39;</span>
+    <span style="color: #007020">exit</span>
+  end
+end
+
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> var_scan_ip1<span style="color: #333333">.</span>is_ip<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+  puts <span style="background-color: #fff0f0">&#39;ERROR: scan_ip1 for node2 is not a valid IP address&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> var_scan_ip2<span style="color: #333333">.</span>is_ip<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+  puts <span style="background-color: #fff0f0">&#39;ERROR: scan_ip3 for node1 is not a valid IP address&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> var_scan_ip3<span style="color: #333333">.</span>is_ip<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+  puts <span style="background-color: #fff0f0">&#39;ERROR: scan_ip3 for node2 is not a valid IP address&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> var_dns_public_ip<span style="color: #333333">.</span>is_ip<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+  puts <span style="background-color: #fff0f0">&#39;ERROR: dns_public_ip is not a valid IP address&#39;</span>
+  <span style="color: #007020">exit</span>
+end
+
+<span style="color: #008800; font-weight: bold">if</span> var_db_name<span style="color: #333333">.</span>to_s<span style="color: #333333">.</span>empty<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+ puts <span style="background-color: #fff0f0">&quot;ERROR: db_name is not defined&quot;</span>
+ <span style="color: #007020">exit</span>
+end
+
+<span style="color: #008800; font-weight: bold">if</span> var_root_password<span style="color: #333333">.</span>to_s<span style="color: #333333">.</span>empty<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+ puts <span style="background-color: #fff0f0">&quot;ERROR: root_password is not defined&quot;</span>
+ <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> var_grid_password<span style="color: #333333">.</span>to_s<span style="color: #333333">.</span>empty<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+ puts <span style="background-color: #fff0f0">&quot;ERROR: grid_password is not defined&quot;</span>
+  <span style="color: #007020">exit</span>
+end
+<span style="color: #008800; font-weight: bold">if</span> var_oracle_password<span style="color: #333333">.</span>to_s<span style="color: #333333">.</span>empty<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+ puts <span style="background-color: #fff0f0">&quot;ERROR: oracle_password is not defined&quot;</span>
+ <span style="color: #007020">exit</span> 
+end
+<span style="color: #008800; font-weight: bold">if</span> var_sys_password<span style="color: #333333">.</span>to_s<span style="color: #333333">.</span>empty<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+ puts <span style="background-color: #fff0f0">&quot;ERROR: sys_password is not defined&quot;</span>
+ <span style="color: #007020">exit</span>
+end
+
+<span style="color: #008800; font-weight: bold">if</span> (var_cdb <span style="color: #333333">==</span> true) 
+  <span style="color: #008800; font-weight: bold">if</span> var_pdb_name<span style="color: #333333">.</span>to_s<span style="color: #333333">.</span>empty<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+   puts <span style="background-color: #fff0f0">&quot;ERROR: pdb_name is not defined&quot;</span>
+   <span style="color: #007020">exit</span>
+  end
+  <span style="color: #008800; font-weight: bold">if</span> var_pdb_password<span style="color: #333333">.</span>to_s<span style="color: #333333">.</span>empty<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+   puts <span style="background-color: #fff0f0">&quot;ERROR: pdb_password is not defined&quot;</span>
+   <span style="color: #007020">exit</span>
+  end
+end
+
+path <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&quot;./ORCL_software/&quot;</span> <span style="color: #333333">+</span> var_gi_software
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> File<span style="color: #333333">.</span>exist<span style="color: #FF0000; background-color: #FFAAAA">?</span>(path)
+  puts <span style="background-color: #fff0f0">&quot;ERROR: gi_software does not exist&quot;</span>
+  <span style="color: #007020">exit</span>
+end
+path <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&quot;./ORCL_software/&quot;</span> <span style="color: #333333">+</span> var_db_software
+<span style="color: #008800; font-weight: bold">if</span> <span style="color: #FF0000; background-color: #FFAAAA">!</span> File<span style="color: #333333">.</span>exist<span style="color: #FF0000; background-color: #FFAAAA">?</span>(path)
+  puts <span style="background-color: #fff0f0">&quot;ERROR: db_software does not exist&quot;</span>
+  <span style="color: #007020">exit</span>
+end
+
+<span style="color: #888888">#------------------------------------------------------------------</span>
+
+<span style="color: #888888"># Install required Vagrant plugin</span>
+unless Vagrant<span style="color: #333333">.</span>has_plugin<span style="color: #FF0000; background-color: #FFAAAA">?</span>(<span style="background-color: #fff0f0">&quot;vagrant-reload&quot;</span>)
+  puts <span style="background-color: #fff0f0">&#39;Installing vagrant-reload Plugin...&#39;</span>
+  system(<span style="background-color: #fff0f0">&#39;vagrant plugin install vagrant-reload&#39;</span>)
+end
+unless Vagrant<span style="color: #333333">.</span>has_plugin<span style="color: #FF0000; background-color: #FFAAAA">?</span>(<span style="background-color: #fff0f0">&quot;vagrant-proxyconf&quot;</span>)
+  puts <span style="background-color: #fff0f0">&#39;Installing vagrant-proxyconf Plugin...&#39;</span>
+  system(<span style="background-color: #fff0f0">&#39;vagrant plugin install vagrant-proxyconf&#39;</span>)
+end
+<span style="color: #888888">#unless Vagrant.has_plugin?(&quot;vagrant-vbguest&quot;)</span>
+<span style="color: #888888">#  puts &#39;Installing vagrant-vbguest Plugin...&#39;</span>
+<span style="color: #888888">#  system(&#39;vagrant plugin install vagrant-vbguest&#39;)</span>
+<span style="color: #888888">#end</span>
+
+<span style="color: #888888"># Get host time zone for setting VM time zone</span>
+offset_sec <span style="color: #333333">=</span> Time<span style="color: #333333">.</span>now<span style="color: #333333">.</span>gmt_offset
+<span style="color: #008800; font-weight: bold">if</span> (offset_sec <span style="color: #333333">%</span> (<span style="color: #0000DD; font-weight: bold">60</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">60</span>)) <span style="color: #333333">==</span> <span style="color: #0000DD; font-weight: bold">0</span>
+  offset_hr <span style="color: #333333">=</span> ((offset_sec <span style="color: #333333">/</span> <span style="color: #0000DD; font-weight: bold">60</span>) <span style="color: #333333">/</span> <span style="color: #0000DD; font-weight: bold">60</span>)
+  timezone_suffix <span style="color: #333333">=</span> offset_hr <span style="color: #333333">&gt;=</span> <span style="color: #0000DD; font-weight: bold">0</span> <span style="color: #FF0000; background-color: #FFAAAA">?</span> <span style="background-color: #fff0f0">&quot;-#{offset_hr.to_s}&quot;</span> : <span style="background-color: #fff0f0">&quot;+#{(-offset_hr).to_s}&quot;</span>
+  var_system_timezone <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&#39;Etc/GMT&#39;</span> <span style="color: #333333">+</span> timezone_suffix
+<span style="color: #008800; font-weight: bold">else</span>
+  <span style="color: #888888"># if host time zone isn&#39;t an integer hour offset, fall back to UTC</span>
+  var_system_timezone <span style="color: #333333">=</span> <span style="background-color: #fff0f0">&#39;UTC&#39;</span>
+end
+
+<span style="color: #888888"># VMs definition</span>
+Vagrant<span style="color: #333333">.</span>configure(VAGRANTFILE_API_VERSION) do <span style="color: #333333">|</span>config<span style="color: #333333">|</span>
+  config<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>box <span style="color: #333333">=</span> var_box
+  config<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>box_url <span style="color: #333333">=</span> var_url
+
+  <span style="color: #888888"># Disable automatic box update checking. If you disable this, then</span>
+  <span style="color: #888888"># boxes will only be checked for updates when the user runs</span>
+  <span style="color: #888888"># `vagrant box outdated`. This is not recommended.</span>
+  config<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>box_check_update <span style="color: #333333">=</span> false
+
+  <span style="color: #008800; font-weight: bold">if</span> Vagrant<span style="color: #333333">.</span>has_plugin<span style="color: #FF0000; background-color: #FFAAAA">?</span>(<span style="background-color: #fff0f0">&quot;vagrant-vbguest&quot;</span>)
+    config<span style="color: #333333">.</span>vbguest<span style="color: #333333">.</span>auto_update <span style="color: #333333">=</span> false
+  end
+
+  <span style="color: #888888"># add proxy configuration from host env - optional</span>
+  <span style="color: #008800; font-weight: bold">if</span> Vagrant<span style="color: #333333">.</span>has_plugin<span style="color: #FF0000; background-color: #FFAAAA">?</span>(<span style="background-color: #fff0f0">&quot;vagrant-proxyconf&quot;</span>)
+    puts <span style="background-color: #fff0f0">&quot;getting Proxy Configuration from Host...&quot;</span>
+    <span style="color: #008800; font-weight: bold">if</span> ENV[<span style="background-color: #fff0f0">&quot;http_proxy&quot;</span>]
+      puts <span style="background-color: #fff0f0">&quot;http_proxy: &quot;</span> <span style="color: #333333">+</span> ENV[<span style="background-color: #fff0f0">&quot;http_proxy&quot;</span>]
+      config<span style="color: #333333">.</span>proxy<span style="color: #333333">.</span>http     <span style="color: #333333">=</span> ENV[<span style="background-color: #fff0f0">&quot;http_proxy&quot;</span>]
+    end
+    <span style="color: #008800; font-weight: bold">if</span> ENV[<span style="background-color: #fff0f0">&quot;https_proxy&quot;</span>]
+      puts <span style="background-color: #fff0f0">&quot;https_proxy: &quot;</span> <span style="color: #333333">+</span> ENV[<span style="background-color: #fff0f0">&quot;https_proxy&quot;</span>]
+      config<span style="color: #333333">.</span>proxy<span style="color: #333333">.</span>https    <span style="color: #333333">=</span> ENV[<span style="background-color: #fff0f0">&quot;https_proxy&quot;</span>]
+    end
+    <span style="color: #008800; font-weight: bold">if</span> ENV[<span style="background-color: #fff0f0">&quot;no_proxy&quot;</span>]
+      config<span style="color: #333333">.</span>proxy<span style="color: #333333">.</span>no_proxy <span style="color: #333333">=</span> ENV[<span style="background-color: #fff0f0">&quot;no_proxy&quot;</span>]
+    end
+  end
+
+  <span style="color: #888888"># Share an additional folder to the guest VM. </span>
+  <span style="color: #888888"># The first argument is the path on the host to the actual folder.</span>
+  <span style="color: #888888"># The second argument is the path on the guest to mount the folder. </span>
+  <span style="color: #888888"># And the optional third argument is a set of non-required options.</span>
+  config<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>synced_folder <span style="background-color: #fff0f0">&quot;config/&quot;</span>,      <span style="background-color: #fff0f0">&quot;/vagrant_config&quot;</span>
+  config<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>synced_folder <span style="background-color: #fff0f0">&quot;utilities/&quot;</span>,   <span style="background-color: #fff0f0">&quot;/vagrant_utilities&quot;</span>
+  config<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>synced_folder <span style="background-color: #fff0f0">&quot;userscripts/&quot;</span>, <span style="background-color: #fff0f0">&quot;/vagrant_userscripts&quot;</span>
+  config<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>synced_folder <span style="background-color: #fff0f0">&quot;scripts/&quot;</span>,     <span style="background-color: #fff0f0">&quot;/vagrant_scripts&quot;</span>
+
+  config<span style="color: #333333">.</span>ssh<span style="color: #333333">.</span>forward_x11 <span style="color: #333333">=</span> true
+
+  <span style="color: #008800; font-weight: bold">if</span> var_orestart <span style="color: #333333">==</span> false
+    <span style="color: #888888"># vm node2</span>
+    config<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>define :node2 do <span style="color: #333333">|</span>node2<span style="color: #333333">|</span>
+      node2<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>hostname <span style="color: #333333">=</span> var_vm2_name
+      node2<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>network :private_network, ip: var_vm2_public_ip, virtualbox__hostonly: <span style="background-color: #fff0f0">&quot;vboxnet0&quot;</span>
+      node2<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>network :private_network, ip: var_vm2_private_ip, virtualbox__intnet: <span style="background-color: #fff0f0">&quot;private&quot;</span>
+      node2<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>provider :virtualbox do <span style="color: #333333">|</span>vb<span style="color: #333333">|</span>
+        vb<span style="color: #333333">.</span>name   <span style="color: #333333">=</span> var_vm2_name
+        vb<span style="color: #333333">.</span>memory <span style="color: #333333">=</span> var_vm2_mem_size
+        vb<span style="color: #333333">.</span>cpus   <span style="color: #333333">=</span> var_vm2_cpus
+        vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&quot;modifyvm&quot;</span>, :<span style="color: #007020">id</span>, <span style="background-color: #fff0f0">&quot;--groups&quot;</span>, var_group] unless var_group<span style="color: #333333">.</span>nil<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+
+        <span style="color: #888888"># Attach default guest vdisks</span>
+        disk_num <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+        <span style="color: #008800; font-weight: bold">while</span> disk_num <span style="color: #333333">&lt;</span> box_disks_num do
+          vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;storageattach&#39;</span>, :<span style="color: #007020">id</span>, <span style="background-color: #fff0f0">&#39;--storagectl&#39;</span>, <span style="background-color: #fff0f0">&#39;SATA Controller&#39;</span>, <span style="background-color: #fff0f0">&#39;--port&#39;</span>, disk_num, <span style="background-color: #fff0f0">&#39;--nonrotational&#39;</span>, var_non_rotational]
+          disk_num <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+        end
+
+        <span style="color: #888888"># Make u01 vdisk</span>
+        unless File<span style="color: #333333">.</span>exist<span style="color: #FF0000; background-color: #FFAAAA">?</span>(var_vm2_u01_disk)
+          vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;createhd&#39;</span>, <span style="background-color: #fff0f0">&#39;--filename&#39;</span>, var_vm2_u01_disk, <span style="background-color: #fff0f0">&#39;--size&#39;</span>, <span style="color: #0000DD; font-weight: bold">100</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">1024</span>]
+        end
+        vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;storageattach&#39;</span>, :<span style="color: #007020">id</span>, <span style="background-color: #fff0f0">&#39;--storagectl&#39;</span>, <span style="background-color: #fff0f0">&#39;SATA Controller&#39;</span>, <span style="background-color: #fff0f0">&#39;--port&#39;</span>, disk_num, <span style="background-color: #fff0f0">&#39;--device&#39;</span>, <span style="color: #0000DD; font-weight: bold">0</span>, <span style="background-color: #fff0f0">&#39;--type&#39;</span>, <span style="background-color: #fff0f0">&#39;hdd&#39;</span>, <span style="background-color: #fff0f0">&#39;--medium&#39;</span>, var_vm2_u01_disk, <span style="background-color: #fff0f0">&#39;--nonrotational&#39;</span>, var_non_rotational]
+
+        <span style="color: #888888"># Making asm disks</span>
+        disk_num <span style="color: #333333">=</span> disk_num<span style="color: #333333">.</span>to_i <span style="color: #333333">+</span> <span style="color: #0000DD; font-weight: bold">1</span>
+        num <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+        <span style="color: #008800; font-weight: bold">while</span> num <span style="color: #333333">&lt;</span> var_asm_disk_num do 
+          asm_disk <span style="color: #333333">=</span> var_asm_disk_path <span style="color: #333333">+</span> <span style="background-color: #fff0f0">&quot;asm_disk&quot;</span> <span style="color: #333333">+</span> num<span style="color: #333333">.</span>to_s <span style="color: #333333">+</span> <span style="background-color: #fff0f0">&quot;.vdi&quot;</span>
+          <span style="color: #888888"># Making oradata disks</span>
+          unless File<span style="color: #333333">.</span>exist<span style="color: #FF0000; background-color: #FFAAAA">?</span>(asm_disk)
+            vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;createhd&#39;</span>, <span style="background-color: #fff0f0">&#39;--filename&#39;</span>, asm_disk, <span style="background-color: #fff0f0">&#39;--size&#39;</span>, var_asm_disk_size <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">1024</span>, <span style="background-color: #fff0f0">&#39;--format&#39;</span>, <span style="background-color: #fff0f0">&#39;VDI&#39;</span>, <span style="background-color: #fff0f0">&#39;--variant&#39;</span>, <span style="background-color: #fff0f0">&#39;Fixed&#39;</span>]
+          end
+          vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;storageattach&#39;</span>, :<span style="color: #007020">id</span>, <span style="background-color: #fff0f0">&#39;--storagectl&#39;</span>, <span style="background-color: #fff0f0">&#39;SATA Controller&#39;</span>, <span style="background-color: #fff0f0">&#39;--port&#39;</span>, disk_num, <span style="background-color: #fff0f0">&#39;--device&#39;</span>, <span style="color: #0000DD; font-weight: bold">0</span>, <span style="background-color: #fff0f0">&#39;--type&#39;</span>, <span style="background-color: #fff0f0">&#39;hdd&#39;</span>, <span style="background-color: #fff0f0">&#39;--medium&#39;</span>, asm_disk, <span style="background-color: #fff0f0">&#39;--mtype&#39;</span>, <span style="background-color: #fff0f0">&#39;shareable&#39;</span>, <span style="background-color: #fff0f0">&#39;--nonrotational&#39;</span>, var_non_rotational]
+          vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;modifymedium&#39;</span>, <span style="background-color: #fff0f0">&#39;disk&#39;</span>, asm_disk, <span style="background-color: #fff0f0">&#39;--type&#39;</span>, <span style="background-color: #fff0f0">&#39;shareable&#39;</span>]
+          disk_num <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+          num <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+        end
+      end
+    end
+  end
+
+  <span style="color: #888888"># vm node1</span>
+  config<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>define :node1 do <span style="color: #333333">|</span>node1<span style="color: #333333">|</span>
+    node1<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>hostname <span style="color: #333333">=</span> var_vm1_name
+    node1<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>network :private_network, ip: var_vm1_public_ip, virtualbox__hostonly: <span style="background-color: #fff0f0">&quot;vboxnet0&quot;</span>
+    node1<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>network :private_network, ip: var_vm1_private_ip, virtualbox__intnet: <span style="background-color: #fff0f0">&quot;private&quot;</span>
+    node1<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>provider :virtualbox do <span style="color: #333333">|</span>vb<span style="color: #333333">|</span>
+      vb<span style="color: #333333">.</span>name   <span style="color: #333333">=</span> var_vm1_name
+      vb<span style="color: #333333">.</span>memory <span style="color: #333333">=</span> var_vm1_mem_size
+      vb<span style="color: #333333">.</span>cpus   <span style="color: #333333">=</span> var_vm1_cpus
+      vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&quot;modifyvm&quot;</span>, :<span style="color: #007020">id</span>, <span style="background-color: #fff0f0">&quot;--groups&quot;</span>, var_group] unless var_group<span style="color: #333333">.</span>nil<span style="color: #FF0000; background-color: #FFAAAA">?</span>
+
+      <span style="color: #888888"># Attach default guest vdisks</span>
+      disk_num <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+      <span style="color: #008800; font-weight: bold">while</span> disk_num <span style="color: #333333">&lt;</span> box_disks_num do
+        vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;storageattach&#39;</span>, :<span style="color: #007020">id</span>, <span style="background-color: #fff0f0">&#39;--storagectl&#39;</span>, <span style="background-color: #fff0f0">&#39;SATA Controller&#39;</span>, <span style="background-color: #fff0f0">&#39;--port&#39;</span>, disk_num, <span style="background-color: #fff0f0">&#39;--nonrotational&#39;</span>, var_non_rotational]
+        disk_num <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+      end
+
+      <span style="color: #888888"># Make u01 vdisk</span>
+      unless File<span style="color: #333333">.</span>exist<span style="color: #FF0000; background-color: #FFAAAA">?</span>(var_vm1_u01_disk)
+        vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;createhd&#39;</span>, <span style="background-color: #fff0f0">&#39;--filename&#39;</span>, var_vm1_u01_disk, <span style="background-color: #fff0f0">&#39;--size&#39;</span>, <span style="color: #0000DD; font-weight: bold">100</span> <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">1024</span>]
+      end
+      vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;storageattach&#39;</span>, :<span style="color: #007020">id</span>, <span style="background-color: #fff0f0">&#39;--storagectl&#39;</span>, <span style="background-color: #fff0f0">&#39;SATA Controller&#39;</span>, <span style="background-color: #fff0f0">&#39;--port&#39;</span>, disk_num, <span style="background-color: #fff0f0">&#39;--device&#39;</span>, <span style="color: #0000DD; font-weight: bold">0</span>, <span style="background-color: #fff0f0">&#39;--type&#39;</span>, <span style="background-color: #fff0f0">&#39;hdd&#39;</span>, <span style="background-color: #fff0f0">&#39;--medium&#39;</span>, var_vm1_u01_disk, <span style="background-color: #fff0f0">&#39;--nonrotational&#39;</span>, var_non_rotational]
+      disk_num <span style="color: #333333">=</span> disk_num<span style="color: #333333">.</span>to_i <span style="color: #333333">+</span> <span style="color: #0000DD; font-weight: bold">1</span>
+
+      <span style="color: #008800; font-weight: bold">if</span> var_orestart <span style="color: #333333">==</span> false
+        num <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+        <span style="color: #008800; font-weight: bold">while</span> num <span style="color: #333333">&lt;</span> var_asm_disk_num do
+          asm_disk <span style="color: #333333">=</span> var_asm_disk_path <span style="color: #333333">+</span> <span style="background-color: #fff0f0">&quot;asm_disk&quot;</span> <span style="color: #333333">+</span> num<span style="color: #333333">.</span>to_s <span style="color: #333333">+</span> <span style="background-color: #fff0f0">&quot;.vdi&quot;</span>
+          vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;storageattach&#39;</span>, :<span style="color: #007020">id</span>, <span style="background-color: #fff0f0">&#39;--storagectl&#39;</span>, <span style="background-color: #fff0f0">&#39;SATA Controller&#39;</span>, <span style="background-color: #fff0f0">&#39;--port&#39;</span>, disk_num, <span style="background-color: #fff0f0">&#39;--device&#39;</span>, <span style="color: #0000DD; font-weight: bold">0</span>, <span style="background-color: #fff0f0">&#39;--type&#39;</span>, <span style="background-color: #fff0f0">&#39;hdd&#39;</span>, <span style="background-color: #fff0f0">&#39;--medium&#39;</span>, asm_disk, <span style="background-color: #fff0f0">&#39;--mtype&#39;</span>, <span style="background-color: #fff0f0">&#39;shareable&#39;</span>, <span style="background-color: #fff0f0">&#39;--nonrotational&#39;</span>, var_non_rotational]
+          disk_num <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+          num <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+        end
+      <span style="color: #008800; font-weight: bold">else</span>
+        <span style="color: #888888"># Making asm disks</span>
+        num <span style="color: #333333">=</span> <span style="color: #0000DD; font-weight: bold">0</span>
+        <span style="color: #008800; font-weight: bold">while</span> num <span style="color: #333333">&lt;</span> var_asm_disk_num do 
+          asm_disk <span style="color: #333333">=</span> var_asm_disk_path <span style="color: #333333">+</span> <span style="background-color: #fff0f0">&quot;asm_disk&quot;</span> <span style="color: #333333">+</span> num<span style="color: #333333">.</span>to_s <span style="color: #333333">+</span> <span style="background-color: #fff0f0">&quot;.vdi&quot;</span>
+          <span style="color: #888888"># Making oradata disks</span>
+          unless File<span style="color: #333333">.</span>exist<span style="color: #FF0000; background-color: #FFAAAA">?</span>(asm_disk)
+            vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;createhd&#39;</span>, <span style="background-color: #fff0f0">&#39;--filename&#39;</span>, asm_disk, <span style="background-color: #fff0f0">&#39;--size&#39;</span>, var_asm_disk_size <span style="color: #333333">*</span> <span style="color: #0000DD; font-weight: bold">1024</span>, <span style="background-color: #fff0f0">&#39;--format&#39;</span>, <span style="background-color: #fff0f0">&#39;VDI&#39;</span>, <span style="background-color: #fff0f0">&#39;--variant&#39;</span>, <span style="background-color: #fff0f0">&#39;Fixed&#39;</span>]
+          end
+          vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;storageattach&#39;</span>, :<span style="color: #007020">id</span>, <span style="background-color: #fff0f0">&#39;--storagectl&#39;</span>, <span style="background-color: #fff0f0">&#39;SATA Controller&#39;</span>, <span style="background-color: #fff0f0">&#39;--port&#39;</span>, disk_num, <span style="background-color: #fff0f0">&#39;--device&#39;</span>, <span style="color: #0000DD; font-weight: bold">0</span>, <span style="background-color: #fff0f0">&#39;--type&#39;</span>, <span style="background-color: #fff0f0">&#39;hdd&#39;</span>, <span style="background-color: #fff0f0">&#39;--medium&#39;</span>, asm_disk, <span style="background-color: #fff0f0">&#39;--mtype&#39;</span>, <span style="background-color: #fff0f0">&#39;shareable&#39;</span>, <span style="background-color: #fff0f0">&#39;--nonrotational&#39;</span>, var_non_rotational]
+          vb<span style="color: #333333">.</span>customize [<span style="background-color: #fff0f0">&#39;modifymedium&#39;</span>, <span style="background-color: #fff0f0">&#39;disk&#39;</span>, asm_disk, <span style="background-color: #fff0f0">&#39;--type&#39;</span>, <span style="background-color: #fff0f0">&#39;shareable&#39;</span>]
+          disk_num <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+          num <span style="color: #333333">+=</span> <span style="color: #0000DD; font-weight: bold">1</span>
+        end
+      end
+    end
+  end
+
+  <span style="color: #888888"># Enable ssh password authentication</span>
+  config<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>provision <span style="background-color: #fff0f0">&quot;shell&quot;</span>, inline: <span style="color: #333333">&lt;&lt;-</span>SHELL
+    sed <span style="color: #333333">-</span>i <span style="background-color: #fff0f0">&#39;s/PasswordAuthentication no/PasswordAuthentication yes/g&#39;</span> <span style="color: #333333">/</span>etc<span style="color: #333333">/</span>ssh<span style="color: #333333">/</span>sshd_config    
+    <span style="color: #333333">/</span><span style="color: #007020">bin</span><span style="color: #333333">/</span>systemctl restart sshd
+  SHELL
+
+  <span style="color: #888888"># Enable provisioning with a shell script</span>
+  config<span style="color: #333333">.</span>vm<span style="color: #333333">.</span>provision <span style="background-color: #fff0f0">&quot;shell&quot;</span>, path: <span style="background-color: #fff0f0">&quot;scripts/setup.sh&quot;</span>, env: {
+      <span style="background-color: #fff0f0">&quot;BOX_DISK_NUM&quot;</span>       <span style="color: #333333">=&gt;</span> box_disks_num,
+      <span style="background-color: #fff0f0">&quot;SYSTEM_TIMEZONE&quot;</span>    <span style="color: #333333">=&gt;</span> var_system_timezone,
+      <span style="background-color: #fff0f0">&quot;PREFIX_NAME&quot;</span>        <span style="color: #333333">=&gt;</span> var_prefix_name,
+      <span style="background-color: #fff0f0">&quot;GI_SOFTWARE&quot;</span>        <span style="color: #333333">=&gt;</span> var_gi_software,
+      <span style="background-color: #fff0f0">&quot;GI_SOFTWARE_VER&quot;</span>    <span style="color: #333333">=&gt;</span> var_gi_software_ver,
+      <span style="background-color: #fff0f0">&quot;DB_SOFTWARE&quot;</span>        <span style="color: #333333">=&gt;</span> var_db_software,
+      <span style="background-color: #fff0f0">&quot;DB_SOFTWARE_VER&quot;</span>    <span style="color: #333333">=&gt;</span> var_db_software_ver,
+      <span style="background-color: #fff0f0">&quot;ORA_LANGUAGES&quot;</span>      <span style="color: #333333">=&gt;</span> var_ora_languages,
+      <span style="background-color: #fff0f0">&quot;VM1_NAME&quot;</span>           <span style="color: #333333">=&gt;</span> var_vm1_name,
+      <span style="background-color: #fff0f0">&quot;VM2_NAME&quot;</span>           <span style="color: #333333">=&gt;</span> var_vm2_name,
+      <span style="background-color: #fff0f0">&quot;NODE1_PUBLIC_IP&quot;</span>    <span style="color: #333333">=&gt;</span> var_vm1_public_ip,
+      <span style="background-color: #fff0f0">&quot;NODE2_PUBLIC_IP&quot;</span>    <span style="color: #333333">=&gt;</span> var_vm2_public_ip,
+      <span style="background-color: #fff0f0">&quot;NODE1_VIP_IP&quot;</span>       <span style="color: #333333">=&gt;</span> var_vm1_vip_ip,
+      <span style="background-color: #fff0f0">&quot;NODE2_VIP_IP&quot;</span>       <span style="color: #333333">=&gt;</span> var_vm2_vip_ip,
+      <span style="background-color: #fff0f0">&quot;NODE1_PRIV_IP&quot;</span>      <span style="color: #333333">=&gt;</span> var_vm1_private_ip,
+      <span style="background-color: #fff0f0">&quot;NODE2_PRIV_IP&quot;</span>      <span style="color: #333333">=&gt;</span> var_vm2_private_ip,
+      <span style="background-color: #fff0f0">&quot;SCAN_IP1&quot;</span>           <span style="color: #333333">=&gt;</span> var_scan_ip1,
+      <span style="background-color: #fff0f0">&quot;SCAN_IP2&quot;</span>           <span style="color: #333333">=&gt;</span> var_scan_ip2,
+      <span style="background-color: #fff0f0">&quot;SCAN_IP3&quot;</span>           <span style="color: #333333">=&gt;</span> var_scan_ip3,
+      <span style="background-color: #fff0f0">&quot;DNS_PUBLIC_IP&quot;</span>      <span style="color: #333333">=&gt;</span> var_dns_public_ip,
+      <span style="background-color: #fff0f0">&quot;ROOT_PASSWORD&quot;</span>      <span style="color: #333333">=&gt;</span> var_root_password,
+      <span style="background-color: #fff0f0">&quot;GRID_PASSWORD&quot;</span>      <span style="color: #333333">=&gt;</span> var_grid_password,
+      <span style="background-color: #fff0f0">&quot;ORACLE_PASSWORD&quot;</span>    <span style="color: #333333">=&gt;</span> var_oracle_password,
+      <span style="background-color: #fff0f0">&quot;SYS_PASSWORD&quot;</span>       <span style="color: #333333">=&gt;</span> var_sys_password,
+      <span style="background-color: #fff0f0">&quot;PDB_PASSWORD&quot;</span>       <span style="color: #333333">=&gt;</span> var_pdb_password,
+      <span style="background-color: #fff0f0">&quot;P1_RATIO&quot;</span>           <span style="color: #333333">=&gt;</span> var_p1_ratio,
+      <span style="background-color: #fff0f0">&quot;ASM_LIB_TYPE&quot;</span>       <span style="color: #333333">=&gt;</span> var_asm_lib_type,
+      <span style="background-color: #fff0f0">&quot;NOMGMTDB&quot;</span>           <span style="color: #333333">=&gt;</span> var_nomgmtdb,
+      <span style="background-color: #fff0f0">&quot;ORESTART&quot;</span>           <span style="color: #333333">=&gt;</span> var_orestart,
+      <span style="background-color: #fff0f0">&quot;DB_NAME&quot;</span>            <span style="color: #333333">=&gt;</span> var_db_name,
+      <span style="background-color: #fff0f0">&quot;PDB_NAME&quot;</span>           <span style="color: #333333">=&gt;</span> var_pdb_name,
+      <span style="background-color: #fff0f0">&quot;DB_TYPE&quot;</span>            <span style="color: #333333">=&gt;</span> var_db_type,
+      <span style="background-color: #fff0f0">&quot;CDB&quot;</span>                <span style="color: #333333">=&gt;</span> var_cdb
+  }
+end
+<span style="color: #888888">#----------------------------------------------------------</span>
+<span style="color: #888888"># EndOfFile</span>
+<span style="color: #888888">#----------------------------------------------------------</span>
+</pre></div>
